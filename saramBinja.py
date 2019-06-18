@@ -2,8 +2,10 @@ from binaryninja import *
 import inspect
 from saram_py2_scaffold import _saram_conf, saram_py2_new_section
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 __author__ = 'Hapsida @securisec'
+
+# TODO: add windows support for conf file
 
 class SaramBinja(object):
     """
@@ -24,6 +26,7 @@ class SaramBinja(object):
         self.binja = bv
         self.output = None
         self.command = None
+        self._comment = None
 
     def send(self):
         """
@@ -38,7 +41,7 @@ class SaramBinja(object):
                 {
                     "username": _saram_conf['username'],
                     "avatar": _saram_conf['avatar'],
-                    "text": "saramBinja"
+                    "text": 'saramBinja {name}'.format(name=self._comment)
                 }
             ]
         }
@@ -50,7 +53,9 @@ class SaramBinja(object):
 
         >>> saram.snb_get_strings().send()
         """
-        self.command = inspect.stack()[0][3] + ' ' + 'All strings'
+        func_name = inspect.stack()[0][3]
+        self._comment = func_name
+        self.command = func_name + ' ' + 'All strings'
         self.output = '\n'.join([
             '{offset} {value}'.format(offset=hex(x.start), value=x.value) for x in self.binja.strings
         ])
@@ -63,7 +68,9 @@ class SaramBinja(object):
 
         >>> saram.snb_get_functions().send()
         """
-        self.command = inspect.stack()[0][3] + ' ' + 'All functions'
+        func_name = inspect.stack()[0][3]
+        self._comment = func_name
+        self.command = func_name + ' ' + 'All functions'
         self.output = '\n'.join([
             '{offset} {value}'.format(offset=hex(x.start), value=x.name) for x in self.binja.functions
         ])
@@ -79,8 +86,9 @@ class SaramBinja(object):
 
         >>> saram.snb_current_function_comments(current_function).send()
         """
-        self.command = inspect.stack(
-        )[0][3] + ' ' + 'Comments from: ' + current_function.name
+        func_name = inspect.stack()[0][3]
+        self._comment = func_name
+        self.command = func_name + ' ' + 'Comments from: ' + current_function.name
         self.output = '\n'.join([
             '{offset} {comment}'.format(offset=hex(key), comment=value) for key, value in current_function.comments.items()
         ])
@@ -96,8 +104,9 @@ class SaramBinja(object):
 
         >>> saram.snb_current_function_references(current_function).send()
         """
-        self.command = inspect.stack(
-        )[0][3] + ' ' + 'Comments from: ' + current_function.name
+        func_name = inspect.stack()[0][3]
+        self._comment = func_name
+        self.command = func_name + ' ' + 'Comments from: ' + current_function.name
         self.output = ''
         self.output += 'Function name: {name}\n\n'.format(
             name=current_function.name)
